@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CCTV</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📽️</text></svg>">
+
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <div id="main-content">
+        <h1>Recordings</h1>
+        <div class="calender">
+            <div class="calender-header">
+                <a class="button" href="/?addMonths=<%= monthToAdd - 1 %>">◀</a>
+                <h2><%= month %></h2>
+                <a class="button" href="/?addMonths=<%= monthToAdd + 1 %>">▶</a>
+            </div>
+            <div class="calender-content">
+                <div class="day day-of-the-week-heading">Mo</div>
+                <div class="day day-of-the-week-heading">Di</div>
+                <div class="day day-of-the-week-heading">Mi</div>
+                <div class="day day-of-the-week-heading">Do</div>
+                <div class="day day-of-the-week-heading">Fr</div>
+                <div class="day day-of-the-week-heading">Sa</div>
+                <div class="day day-of-the-week-heading">So</div>
+                <% for (const item of days) { %>
+                    <% if (item.hasRecording) { %>
+                        <a href="/recordings?date=<%= item.date %>"><%= item.nr %></a>
+                    <% } else { %>
+                        <div class="day <%= item.isThisMonth ? 'this-month' : '' %> <%= item.hasRecording ? 'has-recording' : '' %>">
+                            <%= item.nr %>
+                        </div>
+                    <% } %>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
