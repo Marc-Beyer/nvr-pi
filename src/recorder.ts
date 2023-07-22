@@ -1,6 +1,6 @@
 import { ChildProcessWithoutNullStreams, spawn } from "child_process";
 import fs from "fs";
-import { format } from "date-fns";
+import { differenceInSeconds, format } from "date-fns";
 import path from "path";
 
 export interface RecorderOptions{
@@ -14,6 +14,7 @@ export interface RecorderOptions{
     audioCodec?: string | null; 
     segmentFormat?: string;
     resetTimestamps?: number | string;
+    minRecordingTime?: number;
 }
 
 export class Recorder{
@@ -27,9 +28,11 @@ export class Recorder{
     private audioCodec: string | null;
     private segmentFormat: string;
     private resetTimestamps: string;
+    private minRecordingTime: number;
 
     private ffmpegProcess: ChildProcessWithoutNullStreams | undefined;
-    private saveNextRecording: boolean = false;
+    private recordEventTime: Date | undefined;
+    private currentFile: string | undefined;
 
     constructor(options: RecorderOptions){
         this.streamUrl = options.streamUrl;
@@ -42,6 +45,7 @@ export class Recorder{
         this.audioCodec = (options.audioCodec === undefined ? "aac" : options.audioCodec);
         this.segmentFormat = (options.segmentFormat || "mp4");
         this.resetTimestamps = (options.resetTimestamps || 1).toString();
+        this.minRecordingTime = options.minRecordingTime || 30;
     }
 
     public async startRecording(){
@@ -61,7 +65,7 @@ export class Recorder{
                     "-segment_time", this.segmentTime, 
                     "-segment_wrap", this.segmentWrap,
                     "-segment_format", this.segmentFormat,
-                    "-reset_timestamps", "1",
+                    "-reset_timestamps", this.resetTimestamps,
                     this.segmentFilename,
                 ],
                 {
@@ -69,10 +73,6 @@ export class Recorder{
                     cwd: this.workingDirectory,
                 },
             );
-            
-            this.ffmpegProcess?.stdout?.on("data", (data) => {
-                console.log(`ffmpeg stdout: ${data}`);
-            });
         
             this.ffmpegProcess?.stderr?.on("data", (data: Buffer) => {
                 const message = data.toString();
@@ -85,8 +85,12 @@ export class Recorder{
             this.ffmpegProcess?.on("close", (code) => {
                 console.log(`ffmpeg process exited with code ${code}`);
             });
+
+            this.ffmpegProcess?.on("error", (error) => {
+                console.log(`ffmpeg error: ${error}`);
+            });
         } catch (error) {
-            console.error(`ffmpeg error`, error);
+            console.error(`fmpeg error: `, error);
         }
     }
 
@@ -95,27 +99,47 @@ export class Recorder{
     }
 
     public saveRecording(){
-        console.log(`Save next recording! ${format( new Date(), "HH.mm.ss")}`);
-        
-        this.saveNextRecording = true;
+        this.recordEventTime = new Date();
     }
 
-    private onFileCreated(filename: string){
 
-        if(this.saveNextRecording){
-            const currentDate = new Date();
-            const destinationDir = path.join(this.recordingDirectory, format(currentDate, "yyyy.MM.dd"));
+    private onFileCreated(filename: string){
+        if(this.recordEventTime !== undefined && this.currentFile !== undefined){
+            const destinationDir = path.join(this.recordingDirectory, format(this.recordEventTime, "yyyy.MM.dd"));
             if (!fs.existsSync(destinationDir)) {
                 fs.mkdirSync(destinationDir, { recursive: true });
             }
 
-            const sourcePath = path.join(this.workingDirectory, filename);
-            const destinationPath = path.join(destinationDir, format(currentDate, "HH.mm.ss") + ".mp4");
+            const sourcePath = path.join(this.workingDirectory, this.currentFile);
+            const destinationPath = path.join(destinationDir, format(this.recordEventTime, "HH.mm.ss") + ".mp4");
 
-            fs.copyFileSync(sourcePath, destinationPath);
-    
+            this.copyWhenReady(sourcePath, destinationPath);
+
             console.log(`File '${sourcePath}' copied to '${destinationPath}'!`);
-            this.saveNextRecording = false;
+
+            const currentTime = new Date();
+            if(differenceInSeconds(currentTime, this.recordEventTime) < this.minRecordingTime){
+                this.recordEventTime = currentTime;
+            }else{
+                this.recordEventTime = undefined;
+            }
+        }
+        
+        this.currentFile = filename;
+
+        //console.log(`ffmpeg writes to '${filename}'`);
+
+    }
+
+    private async copyWhenReady(sourcePath: string, destinationPath: string, oldSize?: number) {
+        const newSize = fs.statSync(sourcePath).size;
+        
+        if(oldSize == undefined || oldSize !== newSize){
+            setTimeout(() => {
+                this.copyWhenReady(sourcePath, destinationPath, newSize);
+            }, 1000);
+        }else{
+            fs.copyFileSync(sourcePath, destinationPath);
         }
     }
 }

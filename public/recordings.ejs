@@ -10,22 +10,41 @@
 </head>
 <body>
     <div id="main-content">
-        <h1>Recordings of <%= date %></h1>
-        <% for (const recording of recordings) { %>
-            <div>
-                <a href="/video/<%= date %>:<%= recording %>">
+        <h1>Recordings of <%= day %> the <%= date %></h1>
+        <div class="recordings">
+            <% for (const recording of recordings) { %>
+                <button class="recording" onclick="setVideo('<%= recordingPath %>/<%= recording %>')">
                     <%= recording %>
-                </a>
-            </div>
-        <% } %>
-        <h1>MP4 Video Example</h1>
-        <video class="" autoplay="" playsinline="true" webkit-playsinline="true" x5-playsinline="true" tabindex="2" mediatype="video" src="blob:http://192.168.178.101/4ea924a2-0541-4fa4-a346-1cf5cf5a0388" style="width: 353px; height: 789px;"></video>
-        <video controls autoplay="true">
+                </button>
+            <% } %>
+        </div>
+        <video id="mainVideo" controls autoplay="true" style="display: none;">
             <!-- 19.07.2023.03.10.38.mp4 -->
-            <source src="/video/2023.07.19/output.mp4" type="video/mp4">
+            <source id="mainVideoSource" src="" type="video/mp4">
             Your browser does not support the video tag.
         </video>
-          
     </div>
 </body>
+
+<script>
+    const mainVideoSource = document.getElementById('mainVideoSource');
+    const videoElement = document.getElementById('mainVideo');
+
+    function setVideo(src) {
+        mainVideoSource.src = src;
+        videoElement.load();
+        videoElement.style.display="";
+        if (videoElement.requestFullscreen) {
+            videoElement.requestFullscreen();
+        } else if (videoElement.mozRequestFullScreen) { // Firefox
+            videoElement.mozRequestFullScreen();
+        } else if (videoElement.webkitRequestFullscreen) { // Chrome, Safari, Edge
+            videoElement.webkitRequestFullscreen();
+        } else if (videoElement.msRequestFullscreen) { // Internet Explorer
+            videoElement.msRequestFullscreen();
+        } else {
+            console.error('Fullscreen not supported.');
+        }
+    }
+</script>
 </html>

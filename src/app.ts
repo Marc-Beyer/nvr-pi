@@ -12,11 +12,17 @@ import { Recorder } from "./recorder.js";
 dotenv.config();
 
 const PORT = process.env.PORT || 3000;
+
 const USER = process.env.USERNAME || "";
 const PASSWORD = process.env.PASSWORD || "";
+const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || `http://localhost:${PORT}`;
+
 const RECORDING_PATH = process.env.RECORDING_PATH || "/media/cctv";
 const TMP_RECORDING_PATH = process.env.TMP_RECORDING_PATH || "/media/.cctv-tmp";
 const STREAM_URL = process.env.STREAM_URL || "rtsp://localhost";
+
+const SEGMENT_TIME = process.env.SEGMENT_TIME;
+const MIN_RECORDING_TIME = parseInt(process.env.MIN_RECORDING_TIME || "");
 
 // Create the express app
 const dirname = path.dirname(new URL(import.meta.url).pathname);
@@ -27,11 +33,13 @@ app.set("view engine", "ejs");
 app.set("views", publicFolderPath);
 app.use(bodyParser.json());
 
+// Start the recoarding
 const recorder = new Recorder({ 
     streamUrl: STREAM_URL, 
     workingDirectory: TMP_RECORDING_PATH, 
     recordingDirectory: RECORDING_PATH, 
-    segmentTime: 5 
+    segmentTime: SEGMENT_TIME,
+    minRecordingTime: (isNaN(MIN_RECORDING_TIME) ? undefined : MIN_RECORDING_TIME),
 });
 recorder.startRecording();
 
@@ -43,10 +51,14 @@ function getFolderNames(path: string): string[] {
 }
 
 function getFileNames(path: string): string[] {
-    return fs
-        .readdirSync(path, { withFileTypes: true })
-        .filter((file) => file.name.toLowerCase().endsWith(".mp4"))
-        .map((file) => file.name);
+    try {
+        return fs
+            .readdirSync(path, { withFileTypes: true })
+            .filter((file) => file.name.toLowerCase().endsWith(".mp4"))
+            .map((file) => file.name);
+    } catch {
+        return [];
+    }
 }
 
 app.get("/", (req, res) => {
@@ -62,7 +74,6 @@ app.get("/", (req, res) => {
     const month = format(firstDayOfMonth, "MMMM yyyy");
 
     const recordingDays = getFolderNames(RECORDING_PATH);
-    console.log("recordingDays", recordingDays);
     const dayAndMonth = format(currentTime, "yyyy.MM.");
     const lastDayAndMonth = format(addMonths(currentTime, -1), "yyyy.MM.");
 
@@ -105,25 +116,32 @@ app.get("/recordings", (req, res) => {
 
     const recordings = getFileNames(path.join(RECORDING_PATH, format(parsedDate, "yyyy.MM.dd")));
 
-    res.render("recordings", { date: format(parsedDate, "dd.MM.yyyy"), recordings });
+    res.render("recordings", { 
+        date: format(parsedDate, "dd.MM.yyyy"), 
+        day: format(parsedDate, "eeee"), 
+        recordingPath: path.join("/recording", format(parsedDate, "yyyy.MM.dd")), 
+        recordings 
+    });
 });
 
 app.use(express.static(publicFolderPath));
-app.use("/video", express.static(RECORDING_PATH));
+app.use("/recording", express.static(RECORDING_PATH));
 
 // Handle a post request at /event
 app.post("/event", (req: Request, res: Response) => {
     const authHeader = req.headers.authorization;
+    const origin = req.get('Origin');
     const requestData = req.body;
     const formattedTime = format(new Date(), "yyyy.MM.dd:HH.mm.ss");
-
-    let username = "user";
+    
+    let username = origin;
     let password = "";
 
-    if (USER !== "" || PASSWORD !== "") {
+    if (origin !== ALLOWED_ORIGIN && (USER !== "" || PASSWORD !== "")) {
         if (!authHeader) {
             console.log(`[${formattedTime}] Authorization header missing.`, requestData);
             return res.status(401).json({ error: "Authorization header missing." });
+            res.redirect('https://www.example.com');
         }
 
         const encodedCredentials = authHeader.split(" ")[1];
@@ -136,12 +154,11 @@ app.post("/event", (req: Request, res: Response) => {
         }
     }
 
-    //onMotionDetected();
     recorder.saveRecording();
     console.log(`[${formattedTime}] New event`, username, requestData);
 
-    // Send a response back to the client
-    res.json({ message: "Data received successfully!" });
+    // Send a redirect back to the client
+    res.redirect('/');
 });
 
 app.listen(PORT, () => {

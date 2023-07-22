@@ -7,30 +7,48 @@
 body {
     font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 
-    --main-bg-color: #181a1b;
-    --secondary-bg-color: rgb(48, 48, 48);
+    --main-bg-color: #ffffff;
+    --secondary-bg-color: rgb(221, 221, 221);
 
-    --primary-color: rgb(53, 60, 122);
-    --primary-color-light: rgb(76, 83, 148);
-    --primary-color-lighter: rgb(144, 153, 230);
-    --primary-color-dark: rgb(27, 31, 65);
+    --primary-color: rgb(86, 97, 190);
+    --primary-color-light: rgb(95, 106, 206);
+    --primary-color-lighter: rgb(108, 117, 202);
+    --primary-color-dark: rgb(64, 74, 168);
 
-    --main-color: #e6e6e6;
+    --main-color: #141414;
+    --color-on-primary: #ffffff;
 
     background-color: var(--main-bg-color);
     color: var(--main-color);
 }
 
+@media (prefers-color-scheme: dark) {
+    body {
+        --main-bg-color: #181a1b;
+        --secondary-bg-color: rgb(48, 48, 48);
+        
+        --primary-color: rgb(53, 60, 122);
+        --primary-color-light: rgb(76, 83, 148);
+        --primary-color-lighter: rgb(144, 153, 230);
+        --primary-color-dark: rgb(27, 31, 65);
+
+        --main-color: #e6e6e6;
+    }
+}
+
+input[type="submit"],
+button,
 .button {
     display: flex;
     justify-content: center;
     align-items: center;
     background-color: var(--primary-color);
     border: none;
-    color: var(--main-color);
-    padding: 0.2rem;
+    color: var(--color-on-primary);
+    padding: 0.6rem;
     cursor: pointer;
     text-decoration: none;
+    font-weight: bold;
 
     &:hover {
         background-color: var(--primary-color-light);
@@ -45,16 +63,31 @@ body {
     margin: 1.2rem;
 
     h1 {
-        margin-bottom: 6rem;
+        margin-bottom: 4rem;
+        text-align: center;
     }
 
     video {
+        margin-top: 2rem;
         width: 100%;
+    }
+
+    .recordings{
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        flex-wrap: wrap;
+
+        .recording{
+            margin-bottom: 0.2rem;
+        }
     }
 
     .calender {
         width: 100%;
         max-width: 1000px;
+        margin-bottom: 4rem;
 
         .calender-header {
             display: grid;
@@ -71,7 +104,7 @@ body {
         .calender-content {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            grid-gap: 0.4rem;
+            grid-gap: 0.2rem;
 
             .day {
                 display: flex;
@@ -84,6 +117,7 @@ body {
                 &.day-of-the-week-heading {
                     font-weight: bold;
                     background: var(--primary-color-dark);
+                    color: var(--color-on-primary);
                 }
 
                 &.this-month {
@@ -91,12 +125,12 @@ body {
                 }
 
                 &.has-recording {
-                    //text-decoration: underline;
                     text-decoration: none;
                     cursor: pointer;
                     font-weight: bold;
-                    //color: var(--primary-color-lighter);
                     color: var(--main-color);
+                    background-color: var(--primary-color);
+                    color: var(--color-on-primary);
                     transition: background-color 0.3s ease;
 
                     &:hover {
