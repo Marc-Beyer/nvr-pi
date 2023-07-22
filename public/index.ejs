@@ -27,9 +27,9 @@
                 <div class="day day-of-the-week-heading">So</div>
                 <% for (const item of days) { %>
                     <% if (item.hasRecording) { %>
-                        <a href="/recordings?date=<%= item.date %>"><%= item.nr %></a>
+                        <a class="day has-recording <%= item.isThisMonth ? 'this-month' : '' %>" href="/recordings?date=<%= item.date %>"><%= item.nr %></a>
                     <% } else { %>
-                        <div class="day <%= item.isThisMonth ? 'this-month' : '' %> <%= item.hasRecording ? 'has-recording' : '' %>">
+                        <div class="day <%= item.isThisMonth ? 'this-month' : '' %>">
                             <%= item.nr %>
                         </div>
                     <% } %>

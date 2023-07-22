@@ -1,11 +1,11 @@
-*{
+* {
     padding: 0;
     margin: 0;
     box-sizing: border-box;
 }
 
-body{
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+body {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 
     --main-bg-color: #181a1b;
     --secondary-bg-color: rgb(48, 48, 48);
@@ -17,96 +17,95 @@ body{
 
     --main-color: #e6e6e6;
 
-    
     background-color: var(--main-bg-color);
     color: var(--main-color);
 }
 
-
-.button{
+.button {
     display: flex;
     justify-content: center;
     align-items: center;
     background-color: var(--primary-color);
     border: none;
     color: var(--main-color);
-    padding: .2rem;
+    padding: 0.2rem;
     cursor: pointer;
     text-decoration: none;
 
-    &:hover{
+    &:hover {
         background-color: var(--primary-color-light);
     }
 }
 
-#main-content{
+#main-content {
     display: flex;
     flex-direction: column;
     align-items: center;
 
     margin: 1.2rem;
 
-    h1{
+    h1 {
         margin-bottom: 6rem;
     }
 
-    video{
+    video {
         width: 100%;
     }
 
-    .calender{
+    .calender {
         width: 100%;
         max-width: 1000px;
 
-        .calender-header{
+        .calender-header {
             display: grid;
-            grid-template-columns: 1fr 5fr 1fr; 
-            grid-gap: .4rem;
+            grid-template-columns: 1fr 5fr 1fr;
+            grid-gap: 0.4rem;
             margin-bottom: 1rem;
 
-            h2{
+            h2 {
                 display: flex;
                 justify-content: center;
             }
-
         }
 
-        .calender-content{
+        .calender-content {
             display: grid;
-            grid-template-columns: repeat(7, 1fr); 
-            grid-gap: .4rem;
+            grid-template-columns: repeat(7, 1fr);
+            grid-gap: 0.4rem;
 
-            .day{
+            .day {
                 display: flex;
                 justify-content: center;
                 align-items: center;
                 align-content: center;
-                padding: .2rem;
+                padding: 0.2rem;
                 vertical-align: middle;
 
-                &.day-of-the-week-heading{
+                &.day-of-the-week-heading {
                     font-weight: bold;
                     background: var(--primary-color-dark);
                 }
 
-                &.this-month{
+                &.this-month {
                     background-color: var(--secondary-bg-color);
                 }
 
-                &.has-recording{
+                &.has-recording {
                     //text-decoration: underline;
+                    text-decoration: none;
                     cursor: pointer;
                     font-weight: bold;
                     //color: var(--primary-color-lighter);
+                    color: var(--main-color);
                     transition: background-color 0.3s ease;
 
-                    &:hover{
+                    &:hover {
                         background-color: var(--primary-color-dark);
                     }
 
-                    &::before{
+                    &::before {
                         content: "";
-                        display:block;
+                        display: block;
                         width: 0.5em;
                         height: 0.5em;
                         border-radius: 100%;
