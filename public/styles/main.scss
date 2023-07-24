@@ -55,6 +55,10 @@ button,
     }
 }
 
+.space-top{
+    margin-top: 2rem;
+}
+
 #main-content {
     display: flex;
     flex-direction: column;
@@ -77,10 +81,47 @@ button,
         display: flex;
         flex-direction: column;
         justify-content: center;
-        flex-wrap: wrap;
 
-        .recording{
-            margin-bottom: 0.2rem;
+        .hour-section{
+            h2{
+                padding: 2rem 0 1rem 0;
+                text-align: center;
+                cursor: pointer;
+                transition: background-color .3s ease;
+                transition: color .3s ease;
+
+                &::after{
+                    content: "▼";
+                }
+
+                &:hover{
+                    color: var(--primary-color);
+                }
+            }
+
+            .hour{
+                display: none;
+    
+                .recording{
+                    margin: 0.1rem;
+                    flex: 1;
+                }
+            }
+    
+    
+            &.open{
+                h2{
+                    &::after{
+                        content: "▲";
+                    }
+                }
+
+                .hour{
+                    display: flex;
+                    justify-content: space-around;
+                    flex-wrap: wrap;
+                }
+            }
         }
     }
 
@@ -98,6 +139,7 @@ button,
             h2 {
                 display: flex;
                 justify-content: center;
+                text-align: center;
             }
         }
 
@@ -138,13 +180,9 @@ button,
                     }
 
                     &::before {
-                        content: "";
-                        display: block;
-                        width: 0.5em;
-                        height: 0.5em;
-                        border-radius: 100%;
-                        background-color: red;
-                        margin-right: 0.25em;
+                        content: "🚨";
+                        font-size: 0.6em;
+                        margin-right: 0.2em;
                     }
                 }
             }

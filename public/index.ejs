@@ -27,7 +27,9 @@
                 <div class="day day-of-the-week-heading">So</div>
                 <% for (const item of days) { %>
                     <% if (item.hasRecording) { %>
-                        <a class="day has-recording <%= item.isThisMonth ? 'this-month' : '' %>" href="/recordings?date=<%= item.date %>"><%= item.nr %></a>
+                        <a class="day has-recording <%= item.isThisMonth ? 'this-month' : '' %>" href="/recordings?date=<%= item.date %>">
+                            <%= item.nr %>
+                        </a>
                     <% } else { %>
                         <div class="day <%= item.isThisMonth ? 'this-month' : '' %>">
                             <%= item.nr %>
@@ -36,9 +38,15 @@
                 <% } %>
             </div>
         </div>
-        <form action="/event" method="post">
-            <input type="submit" value="TRIGGER EVENT">
+        <% if (showTodayBtn) { %>
+            <a class="button space-top" href="/">📅 BACK TO TODAY</a>
+        <% } %>
+        <form class="space-top" action="/event" method="post">
+            <input type="submit" value="🚨 TRIGGER EVENT">
         </form>
+        <% if (optionsUrl !== undefined) { %>
+            <a class="button space-top" href="<%= optionsUrl %>">⚙️ SETTINGS</a>
+        <% } %>
     </div>
 </body>
 </html>

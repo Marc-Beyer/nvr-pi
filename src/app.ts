@@ -20,9 +20,11 @@ const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || `http://localhost:${PORT}`;
 const RECORDING_PATH = process.env.RECORDING_PATH || "/media/cctv";
 const TMP_RECORDING_PATH = process.env.TMP_RECORDING_PATH || "/media/.cctv-tmp";
 const STREAM_URL = process.env.STREAM_URL || "rtsp://localhost";
+const FFMPEG_PATH = process.env.FFMPEG_PATH || "ffmpeg";
 
 const SEGMENT_TIME = process.env.SEGMENT_TIME;
 const MIN_RECORDING_TIME = parseInt(process.env.MIN_RECORDING_TIME || "");
+const OPTIONS_URL = process.env.OPTIONS_URL;
 
 // Create the express app
 const dirname = path.dirname(new URL(import.meta.url).pathname);
@@ -40,6 +42,7 @@ const recorder = new Recorder({
     recordingDirectory: RECORDING_PATH, 
     segmentTime: SEGMENT_TIME,
     minRecordingTime: (isNaN(MIN_RECORDING_TIME) ? undefined : MIN_RECORDING_TIME),
+    ffmpegPath: FFMPEG_PATH,
 });
 recorder.startRecording();
 
@@ -100,7 +103,13 @@ app.get("/", (req, res) => {
         });
     }
 
-    res.render("index", { days, month, monthToAdd });
+    res.render("index", { 
+        days, 
+        month, 
+        monthToAdd,
+        optionsUrl: OPTIONS_URL,
+        showTodayBtn: (monthToAdd !== 0),
+    });
 });
 
 app.get("/recordings", (req, res) => {
@@ -114,13 +123,22 @@ app.get("/recordings", (req, res) => {
         return res.status(400).json({ error: "Wrong date." });
     }
 
-    const recordings = getFileNames(path.join(RECORDING_PATH, format(parsedDate, "yyyy.MM.dd")));
+    let filenames = getFileNames(path.join(RECORDING_PATH, format(parsedDate, "yyyy.MM.dd")));
+
+    const recordings: { [hour: string]: string[] } = {};
+    for (let index = 0; index < filenames.length; index++) {
+        const hour = filenames[index].split('.')[0];
+        if (!recordings[hour]) {
+            recordings[hour] = [];
+        }
+        recordings[hour].push(filenames[index]);
+    }
 
     res.render("recordings", { 
         date: format(parsedDate, "dd.MM.yyyy"), 
         day: format(parsedDate, "eeee"), 
         recordingPath: path.join("/recording", format(parsedDate, "yyyy.MM.dd")), 
-        recordings 
+        recordings,
     });
 });
 

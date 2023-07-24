@@ -15,6 +15,7 @@ export interface RecorderOptions{
     segmentFormat?: string;
     resetTimestamps?: number | string;
     minRecordingTime?: number;
+    ffmpegPath?: string;
 }
 
 export class Recorder{
@@ -29,6 +30,7 @@ export class Recorder{
     private segmentFormat: string;
     private resetTimestamps: string;
     private minRecordingTime: number;
+    private ffmpegPath: string;
 
     private ffmpegProcess: ChildProcessWithoutNullStreams | undefined;
     private recordEventTime: Date | undefined;
@@ -46,16 +48,17 @@ export class Recorder{
         this.segmentFormat = (options.segmentFormat || "mp4");
         this.resetTimestamps = (options.resetTimestamps || 1).toString();
         this.minRecordingTime = options.minRecordingTime || 30;
+        this.ffmpegPath = options.ffmpegPath || "ffmpeg";
     }
 
     public async startRecording(){
         if(this.ffmpegProcess !== undefined){
-            throw new Error("Already recording!");
+            console.log(`Already recording!`);
         }
 
         try {
             this.ffmpegProcess = spawn(
-                "ffmpeg", 
+                this.ffmpegPath, 
                 [
                     "-rtsp_transport", "tcp",
                     "-i", this.streamUrl,
@@ -84,6 +87,11 @@ export class Recorder{
         
             this.ffmpegProcess?.on("close", (code) => {
                 console.log(`ffmpeg process exited with code ${code}`);
+            
+                this.stopRecording();
+                setTimeout(() => {
+                    this.startRecording();
+                }, 5000);
             });
 
             this.ffmpegProcess?.on("error", (error) => {
@@ -96,6 +104,7 @@ export class Recorder{
 
     public async stopRecording(){
         this.ffmpegProcess?.kill();
+        this.ffmpegProcess = undefined;
     }
 
     public saveRecording(){
