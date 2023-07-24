@@ -12,11 +12,20 @@
     <div id="main-content">
         <h1>Recordings of <%= day %> the <%= date %></h1>
         <div class="recordings">
-            <% for (const recording of recordings) { %>
-                <button class="recording" onclick="setVideo('<%= recordingPath %>/<%= recording %>')">
-                    <%= recording %>
-                </button>
-            <% } %>
+            <% Object.entries(recordings).sort().forEach(([hour, filenames]) => { %>
+                <div class="hour-section" id="<%= hour %>-section">
+                    <h2 onclick="toggleSection('<%= hour %>')"">
+                        <%= hour %> Uhr (<%= filenames.length %>)
+                    </h2>
+                    <div class="hour">
+                        <% filenames.forEach(filename => { %>
+                            <button class="recording" onclick="setVideo('<%= recordingPath %>/<%= filename %>')">
+                                🎬 <%= filename %>
+                            </button>
+                        <% }); %>
+                    </div>
+                </div>
+            <% }); %>
         </div>
         <video id="mainVideo" controls autoplay="true" style="display: none;">
             <!-- 19.07.2023.03.10.38.mp4 -->
@@ -45,6 +54,10 @@
         } else {
             console.error('Fullscreen not supported.');
         }
+    }
+
+    function toggleSection(hour){
+        document.getElementById(`${hour}-section`).classList.toggle("open");
     }
 </script>
 </html>
