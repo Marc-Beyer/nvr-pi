@@ -53,7 +53,7 @@ export class Recorder{
 
     public async startRecording(){
         if(this.ffmpegProcess !== undefined){
-            console.log(`Already recording!`);
+            console.log(`[ffmpeg]: Already recording!`);
         }
 
         try {
@@ -82,11 +82,15 @@ export class Recorder{
                 const writingFileRegex = /.*Opening '.*' for writing/g;
                 if(writingFileRegex.test(message)){
                     this.onFileCreated(message.split("'")[1]);
+                }else{
+                    if(!message.startsWith("frame=") && !message.startsWith("[segment @")){
+                        console.log(`[ffmpeg]: ${message}`);
+                    }
                 }
             });
         
             this.ffmpegProcess?.on("close", (code) => {
-                console.log(`ffmpeg process exited with code ${code}`);
+                console.log(`[ffmpeg]: process exited with code ${code}`);
             
                 this.stopRecording();
                 setTimeout(() => {
@@ -95,7 +99,7 @@ export class Recorder{
             });
 
             this.ffmpegProcess?.on("error", (error) => {
-                console.log(`ffmpeg error: ${error}`);
+                console.log(`[ffmpeg]: error: ${error}`);
             });
         } catch (error) {
             console.error(`fmpeg error: `, error);
@@ -124,7 +128,7 @@ export class Recorder{
 
             this.copyWhenReady(sourcePath, destinationPath);
 
-            console.log(`File '${sourcePath}' copied to '${destinationPath}'!`);
+            console.log(`[file]: File '${sourcePath}' copied to '${destinationPath}'!`);
 
             const currentTime = new Date();
             if(differenceInSeconds(currentTime, this.recordEventTime) < this.minRecordingTime){
@@ -135,9 +139,6 @@ export class Recorder{
         }
         
         this.currentFile = filename;
-
-        //console.log(`ffmpeg writes to '${filename}'`);
-
     }
 
     private async copyWhenReady(sourcePath: string, destinationPath: string, oldSize?: number) {

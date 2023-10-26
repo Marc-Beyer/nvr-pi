@@ -59,6 +59,10 @@ button,
     margin-top: 2rem;
 }
 
+.space-bottom{
+    margin-bottom: 2rem;
+}
+
 #main-content {
     display: flex;
     flex-direction: column;
@@ -186,6 +190,31 @@ button,
                     }
                 }
             }
+        }
+    }
+
+    #control-panel {
+        width: 100%;
+        max-width: 600px;
+        font-size: 1rem;
+
+        padding: 1rem;
+        border: 1px solid var(--primary-color);
+
+        display: flex;
+        flex-direction: column;
+        justify-content: stretch;
+
+        input{
+            width: 100%;
+        }
+    }
+}  
+
+@media only screen and (max-width: 600px) {
+    #main-content {
+        #control-panel {
+            width: 100%;
         }
     }
 }

@@ -7,6 +7,7 @@ import { format, startOfMonth, endOfMonth, getDaysInMonth, subDays, addMonths, p
 
 import Day from "./interfaces.js";
 import { Recorder } from "./recorder.js";
+import { Vlc } from "./vlc.js";
 
 // Get envirement variables
 dotenv.config();
@@ -34,6 +35,12 @@ const publicFolderPath = path.join(dirname, "../public");
 app.set("view engine", "ejs");
 app.set("views", publicFolderPath);
 app.use(bodyParser.json());
+
+const vlc = new Vlc({
+    streamUrl: STREAM_URL,
+    fullscreen: true,
+});
+vlc.start();
 
 // Start the recoarding
 const recorder = new Recorder({ 
@@ -72,10 +79,15 @@ app.get("/", (req, res) => {
     const currentTime = addMonths(new Date(), monthToAdd);
     const firstDayOfMonth = startOfMonth(currentTime);
     const lastDayOfLastMonth = parseInt(format(endOfMonth(subDays(firstDayOfMonth, 1)), "dd"));
-    const dayOfTheWeek = parseInt(format(firstDayOfMonth, "i"));
+    let dayOfTheWeek = parseInt(format(firstDayOfMonth, "i"));
     const nrOfDays = getDaysInMonth(currentTime);
     const month = format(firstDayOfMonth, "MMMM yyyy");
 
+    dayOfTheWeek--;
+    if(dayOfTheWeek <= 0){
+        dayOfTheWeek = 6;
+    }
+    
     const recordingDays = getFolderNames(RECORDING_PATH);
     const dayAndMonth = format(currentTime, "yyyy.MM.");
     const lastDayAndMonth = format(addMonths(currentTime, -1), "yyyy.MM.");
@@ -145,6 +157,16 @@ app.get("/recordings", (req, res) => {
 app.use(express.static(publicFolderPath));
 app.use("/recording", express.static(RECORDING_PATH));
 
+// Handle stream resart request
+app.post("/restart-stream", (req: Request, res: Response) => {
+    const formattedTime = format(new Date(), "yyyy.MM.dd:HH.mm.ss");
+    console.log(`[stream-restart]: [${formattedTime}]`);
+    vlc.stop();
+    vlc.start();
+
+    res.redirect('/');
+});
+
 // Handle a post request at /event
 app.post("/event", (req: Request, res: Response) => {
     const authHeader = req.headers.authorization;
@@ -157,7 +179,7 @@ app.post("/event", (req: Request, res: Response) => {
 
     if (origin !== ALLOWED_ORIGIN && (USER !== "" || PASSWORD !== "")) {
         if (!authHeader) {
-            console.log(`[${formattedTime}] Authorization header missing.`, requestData);
+            console.log(`[event]: [${formattedTime}] Authorization header missing.`, requestData);
             return res.status(401).json({ error: "Authorization header missing." });
             res.redirect('https://www.example.com');
         }
@@ -167,18 +189,18 @@ app.post("/event", (req: Request, res: Response) => {
         [username, password] = decodedCredentials.split(":");
 
         if (username !== USER || password !== PASSWORD) {
-            console.log(`[${formattedTime}] Wrong credentials.`, username, password, requestData);
+            console.log(`[event]: [${formattedTime}] Wrong credentials.`, username, password, requestData);
             return res.status(401).json({ error: "Wrong credentials." });
         }
     }
 
     recorder.saveRecording();
-    console.log(`[${formattedTime}] New event`, username, requestData);
+    console.log(`[event]: [${formattedTime}] New event`, username, requestData);
 
     // Send a redirect back to the client
     res.redirect('/');
 });
 
 app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+    console.log(`[server]: Server is running on http://localhost:${PORT}`);
 });

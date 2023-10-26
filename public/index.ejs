@@ -38,15 +38,20 @@
                 <% } %>
             </div>
         </div>
-        <% if (showTodayBtn) { %>
-            <a class="button space-top" href="/">📅 BACK TO TODAY</a>
-        <% } %>
-        <form class="space-top" action="/event" method="post">
-            <input type="submit" value="🚨 TRIGGER EVENT">
-        </form>
-        <% if (optionsUrl !== undefined) { %>
-            <a class="button space-top" href="<%= optionsUrl %>">⚙️ SETTINGS</a>
-        <% } %>
+        <div id="control-panel">
+            <% if (showTodayBtn) { %>
+                <a class="button space-bottom" href="/">📅 BACK TO TODAY</a>
+            <% } %>
+            <form action="/restart-stream" method="post">
+                <input type="submit" value="↻ RESTART STREAM">
+            </form>
+            <form class="space-top" action="/event" method="post">
+                <input type="submit" value="🚨 TRIGGER EVENT">
+            </form>
+            <% if (optionsUrl !== undefined) { %>
+                <a class="button space-top" href="<%= optionsUrl %>">⚙️ SETTINGS</a>
+            <% } %>
+        </div>
     </div>
 </body>
 </html>
